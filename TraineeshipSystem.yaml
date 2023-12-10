@@ -1,0 +1,1656 @@
+openapi: 3.0.0
+info:
+  title: >-
+    Система, автоматизирующая процесс организации и проведения стажировок в Лиге
+    Цифровой Экономики
+  version: 1.0.0
+tags:
+  - name: Администратор
+    description: Действия, доступные администратору
+  - name: Руководитель стажировки
+    description: Действия, досутпные руководителю стажировки
+  - name: Ментор
+    description: Действия, доступные ментору
+  - name: Стажер
+    description: Действия, доступные стажеру
+paths:
+  /api/traineeship:
+    post:
+      tags:
+        - Администратор
+      summary: Создание стажировки
+      operationId: postTraineeship
+      security:
+        - Authorization: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/traineeship'
+      responses:
+        '201':
+          description: Стажировка успешно создана
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Идентификатор стажировки
+                  Traineeship:
+                    $ref: '#/components/schemas/traineeship'
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Пользователь неавторизован
+        '500':
+          description: Внутренняя ошибка сервера
+  /api/landing:
+    post:
+      tags:
+        - Администратор
+      summary: Создание лендинга
+      operationId: postLanding
+      security:
+        - Authorization: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/landing'
+      responses:
+        '201':
+          description: Лендинг успешно создан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Идентификатор лендинга
+                  status:
+                    type: boolean
+                    default: false
+                    description: Статус лендинга
+                  landing:
+                    $ref: '#/components/schemas/landing'
+                  URL:
+                    type: string
+                    description: URL лендинга
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Пользователь неавторизован
+        '500':
+          description: Внутренняя ошибка сервера
+  /api/traineeships:
+    get:
+      tags:
+        - Администратор
+        - Руководитель стажировки
+        - Ментор
+        - Стажер
+      summary: Получение списка стажировок
+      operationId: showMyTraineeships
+      security:
+        - Authorization: []
+      parameters:
+        - name: users_id
+          in: query
+          required: true
+          description: Идентификатор пользователя
+          schema:
+            type: string
+        - name: role_id
+          in: query
+          required: true
+          description: Идентификатор роли
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Список стажировок
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/traineeship'
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Пользователь неавторизован
+        '404':
+          description: Стажировки не найдены
+        '500':
+          description: Внутренняя ошибка сервера
+  /api/applications/approved:
+    get:
+      tags:
+        - Администратор
+      summary: Получение списка одобренных заявок
+      operationId: applicationsApproved
+      security:
+        - Authorization: []
+      parameters:
+        - name: status
+          in: query
+          required: true
+          description: Статус "Одобрено", поставленный руководителем
+          schema:
+            type: string
+            default: Approved
+        - name: traineeship_id
+          in: query
+          required: true
+          description: Идентификатор стажировки
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Список одобренных заявок
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/application'
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Пользователь неавторизован
+        '404':
+          description: Одобренные заявки не найдены
+        '500':
+          description: Внутренняя ошибка сервера
+  /api/security:
+    post:
+      tags:
+        - Администратор
+      summary: Направление стажера на проверку в службу безопасности
+      operationId: sendSecurity
+      security:
+        - Authorization: []
+      requestBody:
+        required: true
+        content: 
+          application/json:
+            schema:
+              type: object
+              properties:
+                users_id:
+                  type: string
+                  description: Идентификатор пользователя       
+      responses:
+        '200':
+          description: Стажер направлен на проверку в службу безопасности
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: Статус выполнения операции
+                  message:
+                    type: string
+                    description: Сообщение об операции
+              example:
+                status: Успешно
+                message: Стажер успешно направлен на проверку в службу безопасности
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Пользователь неавторизован
+        '500':
+          description: Внутренняя ошибка сервера
+  /api/users_integration:
+    get:
+      tags:
+        - Администратор
+        - Руководитель стажировки
+      summary: Поиск пользователя в интеграционной таблице "Users"
+      operationId: usersIntegration
+      security:
+        - Authorization: []
+      parameters:
+        - name: last_name
+          in: query
+          required: true
+          description: Фамилия пользователя
+          schema:
+            type: string
+        - name: position
+          in: query
+          required: true
+          description: Должность пользователя в компании
+          schema: 
+            type: string
+      responses:
+        '200':
+          description: Список пользователей
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/users_integration'
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Пользователь неавторизован
+        '404':
+          description: Пользователи не найдены
+        '500':
+          description: Внутренняя ошибка сервера
+  /api/users:
+    post:
+      tags:
+        - Администратор
+        - Руководитель стажировки
+      summary: Добавление пользователя в базу данных системы
+      operationId: postUser
+      security:
+        - Authorization: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                users_integration_id:
+                  type: string
+                  description: ID пользователя в интеграционной таблице "Users"
+      responses:
+        '200':
+          description: Пользователь добавлен
+          content: 
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: string
+                    description: Идентификатор пользователя
+                  users:
+                    $ref: '#/components/schemas/users'
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Пользователь неавторизован
+        '500':
+          description: Внутренняя ошибка сервера
+  /api/role:
+    post:
+      tags: 
+        - Администратор
+        - Руководитель стажировки
+      summary: Назначение роли на стажировке
+      operationId: postRole
+      security:
+        - Authorization: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                users_id:
+                  type: string
+                  description: Идентификатор пользователя
+                traineeship_id: 
+                  type: string
+                  description: Идентификатор стажировки
+                role:
+                  type: string
+                  description: Роль на стажировке
+      responses:
+          '200':
+            description: Роль успешно установлена
+            content:
+              application/json:
+                schema:
+                  properties:
+                    role_id:
+                      type: string
+                      description: Идентификатор роли
+                    role:
+                      $ref: "#/components/schemas/role"
+          '400':
+            description: Неверный запрос
+          '401':
+            description: Пользователь неавторизован
+          '500':
+            description: Внутренняя ошибка сервера          
+  /api/registration_form:
+    post:
+      tags:
+        - Администратор
+      summary: Создание формы регистрации на стажировку
+      operationId: postRegForm
+      security:
+        - Authorization: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/registration_form'
+      responses:
+        '201':
+          description: Форма для регистрации на стажировку успешно создана
+          content:
+            application/json:
+              schema:
+                properties:
+                  status: 
+                    type: string
+                    description: Статус операции
+                  message:
+                    type: string
+                    description: Сообщение об операции
+              example:
+                status: Успешно
+                message: Форма регистрации успешно создана
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Пользователь неавторизован
+        '500':
+          description: Внутренняя ошибка сервер
+  /api/applications:
+    get:
+      tags:
+        - Руководитель стажировки
+      summary: Получение заявок на стажировку
+      operationId: getApplications
+      security:
+        - Authorization: []
+      parameters:
+        - name: traineeship_id
+          in: query
+          required: true
+          description: Идентификатор стажировки
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: true
+          description: Статус заявки
+          schema:
+            type: string
+            default: UNCHECKED
+      responses:
+        '200':
+          description: Список одобренных заявок
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/application'
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Пользователь неавторизован
+        '404':
+          description: Заявки не обнаружены
+        '500':
+          description: Внутренняя ошибка сервера
+  /api/applications/{id}/status:
+    patch:
+      tags:
+        - Руководитель стажировки
+      summary: Одобрение или отклонение заявки
+      operationId: patchStatus
+      security:
+        - Authorization: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор заявки
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: 
+              type: object
+              properties:
+                status:
+                  type: string
+                  description: Статус заявки
+      responses:
+        '200':
+          description: Заявка рассмотрена
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: string
+                    description: Статус выполнения операции
+                  message:
+                    type: string
+                    description: Сообщение, которое приходит
+              example:
+                status: Успешно
+                message: Заявка рассмотрена
+        '204':
+          description: Данные не введены
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Пользователь неавторизован
+        '404':
+          description: Ресурс для изменения не найден
+        '500':
+          description: Внутренняя ошибка сервера  
+  /api/users/{users_id}/role/{role_id}/mentor:
+    patch:
+      tags:
+        - Руководитель стажировки
+      summary: Маппинг менторов и стажеров
+      operationId: patchMentor
+      security:
+        - Authorization: []
+      parameters:
+        - name: users_id
+          in: path
+          required: true
+          description: Идентификатор пользователя
+          schema:
+            type: string
+        - name: role_id
+          in: path
+          required: true
+          description: Идентификатор роли
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: 
+              type: object
+              properties:
+                mentor:
+                  type: string
+                  description: Ментор, назначенный пользователю
+      responses:
+        '200':
+          description: Ментор успешно назначен
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: string
+                    description: Статус операции
+                  message:
+                    type: string
+                    description: Сообщение, которое приходит
+              example:
+                status: Успешно!
+                message: Стажеру назначен ментор
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Пользователь неавторизован
+        '404':
+          description: Ресурс для изменения не найден
+        '500':
+          description: Внутренняя ошибка сервера
+  /api/lecture:
+    post:
+      tags:
+        - Руководитель стажировки
+      summary: Создание лекции для стажировки
+      operationId: postLecture
+      security:
+        - Authorization: []
+      requestBody:
+        required: true
+        content: 
+          application/json:
+            schema:
+              $ref: '#/components/schemas/lecture'
+      responses:
+        '201':
+          description: Лекция создана
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: string
+                    description: Идентификатор стажировки
+                  lecture:
+                    $ref: '#/components/schemas/lecture'
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Пользователь неавторизован
+        '500':
+          description: Внутренняя ошибка сервера
+  /api/lecture/{id}/lecture_mentor:
+    post:
+      tags:
+        - Руководитель стажировки
+      summary: Маппинг лекций и менторов
+      operationId: mappingLM
+      security:
+        - Authorization: []
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content: 
+          application/json:
+            schema:
+              $ref: '#/components/schemas/lecture_mentor'
+      responses:
+        '201':
+          description: Ментор(-ы) назначены на лекцию
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: string
+                    description: Идентификатор маппинга
+                  lecture_mentor:
+                    $ref: '#/components/schemas/lecture_mentor'
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Пользователь неавторизован
+        '404':
+          description: Лекция или ментор не найдены
+        '500':
+          description: Внутренняя ошибка сервера
+  /api/traineeship/{id}/users:
+    get:
+      tags:
+        - Руководитель стажировки
+      summary: Получение списка менторов и стажеров
+      operationId: getUsers
+      security:
+        - Authorization: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор стажировки
+          schema:
+            type: string
+        - name: role
+          in: query
+          required: true
+          description: Роль на стажировке
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Список стажеров
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/role'
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Пользователь неавторизован
+        '404':
+          description: Пользователи не найдены
+        '500':
+          description: Внутренняя ошибка сервера
+  /api/users/{id}/hometask:
+    get:
+      tags:
+        - Руководитель стажировки
+      summary: Получение домашних заданий стажера на стажировке
+      operationId: getHT
+      security:
+        - Authorization: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор пользователя
+          schema: 
+            type: string
+        - name: traineeship_id
+          in: query
+          required: true
+          description: Идентификатор стажировки
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Домашнее задание получено
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/hometask_user'
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Пользователь неавторизован
+        '404':
+          description: Пользователи не найдены
+        '500':
+          description: Внутренняя ошибка сервера
+  /api/hometask:
+    post:
+      tags:
+        - Ментор
+      summary: Добавление домашнего задания
+      operationId: postHT
+      security:
+        - Authorization: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/hometask'
+      responses:
+        '201':
+          description: Домашнее задание успешно добавлено
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Идентификатор домашнего задания
+                  users_id:
+                    type: string
+                    description: Идентификатор пользователя, который создал домашнее задание
+                  hometask:
+                    $ref: '#/components/schemas/hometask'
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Пользователь неавторизован
+        '500':
+          description: Внутренняя ошибка сервера
+  /api/myinterns:
+    get:
+      tags:
+        - Ментор
+      summary: Получение списка стажеров
+      operationId: myInterns
+      security:
+        - Authorization: []
+      parameters:
+        - name: traineeship_id
+          in: query
+          required: true
+          description: Стажеры, участвующие в конкретной стажировке
+          schema:
+            type: string
+        - name: mentor
+          in: query
+          required: true
+          description: Ментор пользователя
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Список стажеров
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/role'
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Пользователь неавторизован
+        '404':
+          description: Пользователи не найдены
+        '500':
+          description: Внутренняя ошибка сервера
+  /api/myinterns/{id}:
+    get:
+      tags:
+        - Ментор
+      summary: Получение страницы конкретного стажера
+      operationId: myInternId
+      security:
+        - Authorization: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор пользователя
+          schema: 
+            type: string
+        - name: traineeship_id
+          in: query
+          required: true
+          description: Стажеры, участвующие в конкретной стажировке
+          schema:
+            type: string
+        - name: mentor
+          in: query
+          required: true
+          description: Ментор пользователя
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Страница стажера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/role'
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Пользователь неавторизован
+        '404':
+          description: Пользователи не найдены
+        '500':
+          description: Внутренняя ошибка сервера
+  /api/users/{users_id}/hometask/{hometask_id}/grade:
+    patch:
+      tags:
+        - Ментор
+      summary: Оценивание домашнего задания
+      operationId: patchGrade
+      security:
+        - Authorization: []
+      parameters:
+        - name: users_id
+          in: path
+          required: true
+          description: Идентификатор пользователя
+          schema:
+            type: string
+        - name: hometask_id
+          in: path
+          required: true
+          description: Идентификатор домашнего задания
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: 
+              type: object
+              properties:
+                grade:
+                  type: string
+                  description: Оценка за домашнее задание
+      responses:
+        '200':
+          description: Домашнее задание оценено
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: string
+                    description: Статус выполнения операции
+                  message:
+                    type: string
+                    description: Сообщение, которое приходит
+              example:
+                status: Успешно
+                message: Домашнее задание оценено
+        '204':
+          description: Данные не введены
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Пользователь неавторизован
+        '404':
+          description: Ресурс для изменения не найден
+        '500':
+          description: Внутренняя ошибка сервера  
+  /api/users/{users_id}/hometask/{hometask_id}/comment:
+    patch:
+      tags:
+        - Ментор
+      summary: Оценивание домашнего задания
+      operationId: patchComment
+      security:
+        - Authorization: []
+      parameters:
+        - name: users_id
+          in: path
+          required: true
+          description: Идентификатор пользователя
+          schema:
+            type: string
+        - name: hometask_id
+          in: path
+          required: true
+          description: Идентификатор домашнего задания
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: 
+              type: object
+              properties:
+                comment:
+                  type: string
+                  description: Оценка за домашнее задание
+      responses:
+        '200':
+          description: Комментарий за домашнее задание сохранен
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: string
+                    description: Статус выполнения операции
+                  message:
+                    type: string
+                    description: Сообщение, которое приходит
+              example:
+                status: Успешно
+                message: Комментарий за домашнее задание сохранен
+        '204':
+          description: Данные не введены
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Пользователь неавторизован
+        '404':
+          description: Ресурс для изменения не найден
+        '500':
+          description: Внутренняя ошибка сервера
+  /api/employment:
+    post:
+      tags:
+        - Руководитель стажировки
+      summary: Направление в HR указания о предложении стажеру трудоустройства
+      operationId: addEmployees
+      security:
+        - Authorization: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                users_id:
+                  type: string
+                  description: Идентификатор пользователя
+                traineeship_id:
+                  type: string
+                  description: Идентификатор стажировки
+      responses:
+        '200':
+          description: Обращение в HR успешно направлено
+          content:
+            application/json:
+              schema:
+                properties: 
+                  status:
+                    type: string
+                    description: Статус операции
+                  message:
+                    type: string
+                    description: Сообщение, которое приходит
+              example:
+                status: Успешно
+                message: Обращение в HR направлено
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Пользователь неавторизован
+        '404':
+          description: Пользователь не найден
+        '500':
+          description: Внутренняя ошибка сервера
+  /api/traineeship/{traineeship_id}/users/{users_id}/feedback:
+    patch:
+      tags:
+        - Ментор
+      summary: Обратная связь о стажере от ментора
+      operationId: patchFeedback
+      security:
+        - Authorization: []
+      parameters:
+        - name: users_id
+          in: path
+          required: true
+          description: Идентификатор пользователя
+          schema:
+            type: string
+        - name: traineeship_id
+          in: path
+          required: true
+          description: Идентификатор стажировки
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: 
+              type: object
+              properties:
+                feedback:
+                  type: string
+                  description: Обратная связь о стажере от ментора
+      responses:
+        '200':
+          description: Обратная связь добавлена
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: string
+                    description: Статус выполнения операции
+                  message:
+                    type: string
+                    description: Сообщение, которое приходит
+              example:
+                status: Успешно
+                message: Обратная связь о стажере опубликована
+        '204':
+          description: Данные не введены
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Пользователь неавторизован
+        '404':
+          description: Ресурс для изменения не найден
+        '500':
+          description: Внутренняя ошибка сервера
+  /api/lecture/{id}/presentation:
+    patch:
+      tags:
+        - Ментор
+      summary: Добавление ссылки на презентацию лекции
+      operationId: addPresentation
+      security:
+        - Authorization: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор лекции
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: 
+              type: object
+              properties:
+                presentation:
+                  type: string
+                  description: Ссылка на презентацию лекции
+      responses:
+        '200':
+          description: Ссылка на презентацию лекции добавлена
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: string
+                    description: Статус выполнения операции
+                  message:
+                    type: string
+                    description: Сообщение, которое приходит
+              example:
+                status: Успешно
+                message: Ссылка на презентацию лекции добавлена
+        '204':
+          description: Данные не введены
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Пользователь неавторизован
+        '404':
+          description: Ресурс для изменения не найден
+        '500':
+          description: Внутренняя ошибка сервера
+  /api/lecture/{id}/recording:
+    patch:
+      tags:
+        - Ментор
+      summary: Добавление ссылки на видеозапись лекции
+      operationId: addRecording
+      security:
+        - Authorization: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор лекции
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: 
+              type: object
+              properties:
+                presentation:
+                  type: string
+                  description: Ссылка на видеозапись лекции
+      responses:
+        '200':
+          description: Ссылка на видеозапись лекции добавлена
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: string
+                    description: Статус выполнения операции
+                  message:
+                    type: string
+                    description: Сообщение, которое приходит
+              example:
+                status: Успешно
+                message: Ссылка на видеозапись лекции добавлена
+        '204':
+          description: Данные не введены
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Пользователь неавторизован
+        '404':
+          description: Ресурс для изменения не найден
+        '500':
+          description: Внутренняя ошибка сервера
+  /api/application:
+    post:
+      tags:
+        - Стажер
+      summary: Отправка заявки на стажировку
+      operationId: postApplication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                first_name:
+                  type: string
+                  description: Имя
+                middle_name:
+                  type: string
+                  description: Отчество
+                last_name: 
+                  type: string
+                  description: Фамилия
+                birthday:
+                  type: string
+                  description: Дата рождения
+                address:
+                  type: string
+                  description: Прописка
+                phone:
+                  type: string
+                  description: Номер телефона
+                email:
+                  type: string
+                  format: email
+                  description: Адрес электронной почты
+                URL_Test:
+                  type: string
+                  description: URL на тестовое задание
+      responses:
+        '201':
+          description: Заявка на стажировку отправлена
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: string
+                    description: Идентификатор заявки
+                  application:
+                    $ref: '#/components/schemas/application'
+        '204':
+          description: Данные не введены
+        '400':
+          description: Неверный запрос
+        '500':
+          description: Внутренняя ошибка сервера
+  /api/landing/download:
+    get:
+      tags:
+        - Стажер
+      summary: Скачать информацию с лендинга в формате PDF
+      operationId: landingPDF
+      parameters:
+        - name: landing_id
+          in: query
+          required: true
+          description: Идентификатор лендинга
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Успешно. Файл PDF для скачивания
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Лендинг или запрашиваемая информация не найдена
+        '500':
+          description: Внутренняя ошибка сервера
+  /api/users/{id}:
+    get:
+      tags:
+        - Стажер
+      summary: Получение данных о профиле
+      operationId: getUsersId
+      security:
+        - Authorization: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор пользователя
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Данные профиля
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/users'
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Пользователь неавторизован
+        '500':
+          description: Внутренняя ошибка сервера
+  /api/traineeship/{traineeship_id}/users/{users_id}:
+    get:
+      tags:
+        - Стажер
+      summary: Получение списка стажировок и ролей в них
+      operationId: traineeshipUser
+      security:
+        - Authorization: []
+      parameters:
+        - name: users_id
+          in: path
+          required: true
+          description: Идентификатор пользователя
+          schema:
+            type: string
+        - name: traineeship_id
+          in: path
+          required: true
+          description: Идентификатор стажировки
+          schema:
+            type: string
+        - name: role
+          in: query
+          required: true
+          description: Роль пользователя
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Список стажировок и ролей в них
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/role'
+        '400':
+          description: Неверный запрос
+        '404':
+          description: Пользователь не назначен ни на одну стажировку
+        '401':
+          description: Пользователь неавторизован
+        '500':
+          description: Внутренняя ошибка сервера
+  /api/lectures:
+    get:
+      tags:
+        - Администратор
+        - Руководитель стажировки
+        - Стажер
+      summary: Получение списка лекций на стажировке
+      operationId: traineeshipLectures
+      security:
+        - Authorization: []
+      parameters:
+        - name: traineeship_id
+          in: query
+          required: true
+          description: Идентификатор стажировки
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Список лекций
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/lecture'
+        '400':
+          description: Неверный запрос
+        '404':
+          description: Лекций для стажировки не создано
+        '401':
+          description: Пользователь неавторизован
+        '500':
+          description: Внутренняя ошибка сервера
+  /api/hometasks:
+    get:
+      tags:
+        - Стажер
+      summary: Получение списка домашних заданий
+      operationId: getHTs
+      security:
+        - Authorization: []
+      parameters:
+        - name: traineeship_id
+          in: query
+          required: true
+          description: Идентификатор стажировки
+          schema:
+            type: string
+                  
+      responses:
+        '200':
+          description: Список домашних заданий
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/hometask'
+        '400':
+          description: Неверный запрос
+        '404':
+          description: Домашних заданий для стажировки не создано
+        '401':
+          description: Пользователь неавторизован
+        '500':
+          description: Внутренняя ошибка сервера
+  /api/users/{users_id}/hometask/{hometask_id}/answer:
+    post:
+      tags:
+        - Стажер
+      summary: Отправка ответа на домашнее задание
+      operationId: postAnswer
+      security:
+        - Authorization: []
+      parameters:
+        - name: users_id
+          in: path
+          required: true
+          description: Идентификатор стажировки
+          schema:
+            type: string
+        - name: hometask_id
+          in: path
+          required: true
+          description: Идентификатор домашнего задания
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: 
+                answer:
+                  type: string
+                  description: Ссылка на домашнее задание
+      responses:
+        '200':
+          description: Ответ на домашнее задание отправлен
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: string
+                    description: Идентификатор ответа на домашнее задание
+                  hometask_user:
+                    $ref: '#/components/schemas/hometask_user' 
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Пользователь неавторизован
+        '500':
+          description: Внутренняя ошибка сервера
+components:
+  securitySchemes:
+    Authorization:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    traineeship:
+      type: object
+      required:
+        - name
+        - description
+      properties:
+        name:
+          type: string
+          description: Название стажировки
+        description:
+          type: string
+          description: Описание стажировки
+    landing:
+      type: object
+      required:
+        - traineeship_id
+        - name
+        - description
+      properties:
+        traineeship_id:
+          type: string
+          description: Идентификатор стажировки, к которой прикреплен лендинг
+        name:
+          type: string
+          description: Название лендинга стажировки
+        description:
+          type: string
+          description: Описание лендинга стажировки
+        image:
+          type: string
+          description: Путь к изображению на лендинге
+    application:
+      type: object
+      required:
+        - traineeship_id
+        - status
+        - first_name
+        - last_name
+        - middle_name
+        - birthday
+        - address
+        - phone
+        - URL_Test
+      properties:
+        traineeship_id:
+          type: string
+          description: Идентификатор стажировки
+        status:
+          type: string
+          description: Статус проверки заявки
+        first_name:
+          type: string
+          description: Имя
+        middle_name:
+          type: string
+          description: Отчество
+        last_name: 
+          type: string
+          description: Фамилия
+        birthday:
+          type: string
+          description: Дата рождения
+        address:
+          type: string
+          description: Прописка
+        phone:
+          type: string
+          description: Номер телефона
+        email:
+          type: string
+          format: email
+          description: Адрес электронной почты
+        URL_Test:
+          type: string
+          description: URL на тестовое задание
+    users_integration:
+      type: object
+      required:
+      - id
+      - last_name
+      - position
+      properties:
+        id:
+          type: string
+          description: Идентификатор пользователя
+        first_name:
+          type: string
+          description: Имя
+        middle_name:
+          type: string
+          description: Отчество
+        last_name: 
+          type: string
+          description: Фамилия
+        position:
+          type: string
+          description: Должность
+        email:
+          type: string
+          description: Электронная почта
+          format: email
+    hometask:
+      type: object
+      required: 
+        - traineeship_id
+        - name
+        - description
+      properties:
+        traineeship_id:
+          type: string
+          description: Идентификатор стажировки
+        name:
+          type: string
+          description: Название домашнего задания
+        description:
+          type: string
+          description: Описание домашнего задания
+    users:
+      type: object
+      required:
+        - integration_id
+        - first_name
+        - last_name
+        - middle_name
+        - birthday
+        - address
+        - phone
+        - email
+      properties:
+        integration_id:
+          type: string
+          description: Идентификатор пользователя в интеграционной таблице "Users"
+        first_name:
+          type: string
+          description: Имя пользователя
+        last_name: 
+          type: string
+          description: Фамилия пользователя
+        middle_name:
+          type: string
+          description: Отчество пользователя
+        birthday:
+          type: string
+          description: Дата рождения
+        address: 
+          type: string
+          description: Прописка пользователя
+        phone:
+          type: string
+          description: Номер телефона пользователя
+        email:
+          type: string
+          format: email
+          description: Адрес электронной почты пользователя
+        security_check:
+          type: string
+          description: Проверка пользователя СБ
+    role:
+      type: object
+      required:
+        - users_id
+        - traineeship_id
+        - role
+      properties:
+        users_id: 
+          type: string
+          description: Идентификатор пользователя
+        traineeship_id:
+          type: string
+          description: Идентификатор стажировки
+        role:
+          type: string
+          description: Роль пользователя в стажировке
+        mentor:
+          type: string
+          description: Ментор пользователя
+        feedback:
+          type: string
+          description: Обратная связь о стажере
+        employment:
+          type: string
+          description: Предложение трудоустройства
+    registration_form:
+      type: object
+      required:
+        - landing_id
+        - first_name
+        - last_name
+        - middle_name
+        - address
+        - phone
+        - email
+        - URL_Test
+      properties:
+        landing_id:
+          type: string
+          description: Идентификатор лендинга
+        first_name:
+          type: boolean
+          default: true
+          description: Имя 
+        last_name:
+          type: boolean
+          default: true
+          description: Фамилия
+        middle_name:
+          type: boolean
+          default: true
+          description: Отчество
+        address: 
+          type: boolean
+          default: true
+          description: Прописка
+        phone:
+          type: boolean
+          default: true
+          description: Номер телефона
+        email:
+          type: boolean
+          default: false
+          description: Электронная почта
+        URL_Test:
+          type: boolean
+          default: true
+          description: Ссылка на тестовое задание
+    hometask_user:
+      type: object
+      required:
+        - users_id
+        - hometask_id
+        - status
+      properties:
+        users_id:
+          type: string
+          description: Идентификатор пользователя
+        hometask_id:
+          type: string
+          description: Идентификатор домашнего задания
+        status:
+          type: string
+          description: Статус выполнения
+        answer:
+          type: string
+          description: Ссылка на ответ на домашнее задание
+        grade:
+          type: string
+          description: Оценка за д/з
+        comment:
+          type: string
+          description: Комментарий ментора
+    lecture:
+      type: object
+      required:
+        - traineeship_id
+        - name
+        - date
+        - URL
+      properties:
+        traineeship_id:
+          type: string
+          description: Идентификатор стажировки
+        name:
+          type: string
+          description: Название лекции
+        date:
+          type: string
+          description: Дата лекции
+        URL:
+          type: string
+          description: Ссылка для подключения к лекции
+        presentation:
+          type: string
+          description: Ссылка для просмотра презентации лекции
+        recording:
+          type: string
+          description: Ссылка для просмотра видеозаписи лекции
+    lecture_mentor:
+      description: Маппинг менторов и лекций
+      required:
+        - traineeship_id
+        - lecture_id
+        - users_id
+      properties:
+        traineeship_id:
+          type: string
+          description: Идентификатор стажировки
+        lecture_id:
+          type: string
+          description: Идентификатор лекции
+        users_id:
+          type: string
+          description: Идентификатор пользователя
